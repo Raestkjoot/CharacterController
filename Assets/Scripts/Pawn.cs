@@ -35,7 +35,14 @@ public class Pawn : MonoBehaviour
                 QueryTriggerInteraction.Ignore))
         {
             Vector3 snapToSurface = dir * (hit.distance - _skinWidth);
-            transform.Translate(snapToSurface);
+            Vector3 leftover = dir * dist - snapToSurface;
+            float mag = leftover.magnitude;
+            leftover = Vector3.ProjectOnPlane(leftover, hit.normal).normalized;
+            leftover *= mag;
+
+            Vector3 slideDir = snapToSurface + leftover;
+            
+            transform.Translate(slideDir);
             return;
         }
         

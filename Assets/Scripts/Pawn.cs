@@ -47,6 +47,12 @@ public class Pawn : MonoBehaviour
                     QueryTriggerInteraction.Ignore))
             {
                 Vector3 snapToSurface = movementLeft.normalized * (hit.distance - _skinWidth);
+
+                if (snapToSurface.magnitude <= _skinWidth)
+                {
+                    snapToSurface = Vector3.zero;
+                }
+                
                 move = snapToSurface;
                 capsulePoint1 += snapToSurface;
                 capsulePoint2 += snapToSurface;

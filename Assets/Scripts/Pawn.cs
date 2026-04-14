@@ -10,6 +10,8 @@ public class Pawn : MonoBehaviour
     // TODO: This is cached. We can add a MarkDirty function to refresh if the collider changes size.
     private float _radius;
     private float _halfHeight;
+
+    private const uint MaxBounces = 5;
     
     private void Awake()
     {
@@ -21,31 +23,46 @@ public class Pawn : MonoBehaviour
 
     public void Move(Vector2 direction)
     {
-        Vector3 dir = new(direction.x, 0.0f, direction.y);
-        float dist = dir.magnitude * _moveSpeed * Time.deltaTime;
-
-        if (Physics.CapsuleCast(
-                transform.position + transform.up * _halfHeight,
-                transform.position - transform.up * _halfHeight,
-                _radius,
-                dir,
-                out RaycastHit hit,
-                dist,
-                -1,
-                QueryTriggerInteraction.Ignore))
-        {
-            Vector3 snapToSurface = dir * (hit.distance - _skinWidth);
-            Vector3 leftover = dir * dist - snapToSurface;
-            float mag = leftover.magnitude;
-            leftover = Vector3.ProjectOnPlane(leftover, hit.normal).normalized;
-            leftover *= mag;
-
-            Vector3 slideDir = snapToSurface + leftover;
-            
-            transform.Translate(slideDir);
-            return;
-        }
+        Vector3 capsulePoint1 = transform.position + transform.up * _halfHeight;
+        Vector3 capsulePoint2 = transform.position - transform.up * _halfHeight;
+        Vector3 movementLeft =  new(direction.x, 0.0f, direction.y);
+        movementLeft *= _moveSpeed * Time.deltaTime;
+        Vector3 move = Vector3.zero;
         
-        transform.Translate(dir * dist);
+        for (int i = 0;; ++i)
+        {
+            if (i > MaxBounces)
+            {
+                return;
+            }
+            
+            if (Physics.CapsuleCast(
+                    capsulePoint1,
+                    capsulePoint2,
+                    _radius,
+                    movementLeft,
+                    out RaycastHit hit,
+                    movementLeft.magnitude,
+                    -1,
+                    QueryTriggerInteraction.Ignore))
+            {
+                Vector3 snapToSurface = movementLeft.normalized * (hit.distance - _skinWidth);
+                move = snapToSurface;
+                capsulePoint1 += snapToSurface;
+                capsulePoint2 += snapToSurface;
+
+                movementLeft -= snapToSurface;
+                float mag = movementLeft.magnitude;
+                movementLeft = Vector3.ProjectOnPlane(movementLeft, hit.normal).normalized;
+                movementLeft *= mag;
+            }
+            else
+            {
+                move += movementLeft;
+                break;
+            }
+        }
+
+        transform.Translate(move);
     }
 }

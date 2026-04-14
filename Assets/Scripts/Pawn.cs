@@ -7,9 +7,12 @@ public class Pawn : MonoBehaviour
     [SerializeField] private float _moveSpeed = 10.0f;
     [SerializeField] private float _skinWidth = 0.015f;
     
-    // TODO: This is cached. We can add a MarkDirty function to refresh if the collider changes size.
+    // NOTE: This is cached. We can add a MarkDirty function to refresh if the collider changes size.
     private float _radius;
     private float _halfHeight;
+    
+    private Vector3 _velocity = Vector3.zero;
+    private bool _isGrounded = false;
 
     private const uint MaxBounces = 5;
     
@@ -28,6 +31,7 @@ public class Pawn : MonoBehaviour
         Vector3 movementLeft =  new(direction.x, 0.0f, direction.y);
         movementLeft *= _moveSpeed * Time.deltaTime;
         Vector3 move = Vector3.zero;
+        RaycastHit hit;
         
         for (int i = 0;; ++i)
         {
@@ -41,7 +45,7 @@ public class Pawn : MonoBehaviour
                     capsulePoint2,
                     _radius,
                     movementLeft,
-                    out RaycastHit hit,
+                    out hit,
                     movementLeft.magnitude,
                     -1,
                     QueryTriggerInteraction.Ignore))
@@ -70,5 +74,20 @@ public class Pawn : MonoBehaviour
         }
 
         transform.Translate(move);
+
+        VisualDebug.Instance.DrawSphere(transform.position + Vector3.down * _halfHeight, _radius);
+        VisualDebug.Instance.DrawSphere((transform.position + Vector3.down * _halfHeight) + Vector3.down * 0.2f , _radius);
+        
+        if (Physics.SphereCast(transform.position + Vector3.down * _halfHeight, _radius, Vector3.down, out hit, 0.2f,
+                -1, QueryTriggerInteraction.Ignore))
+        {
+            _isGrounded = true;
+        }
+        else
+        {
+            _isGrounded = false;
+        }
+        
+        Debug.Log("Grounded = " + _isGrounded);
     }
 }

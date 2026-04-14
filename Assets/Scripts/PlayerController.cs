@@ -23,7 +23,7 @@ public class PlayerController : MonoBehaviour
         _controls.Gameplay.Disable();
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
         if (!_pawn)
         {

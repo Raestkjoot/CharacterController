@@ -81,9 +81,10 @@ public class Pawn : MonoBehaviour
 
         velocityChange = Vector3.ClampMagnitude(velocityChange, _maxMoveSpeed);
 
-        float maxDist = _skinWidth + _halfHeight;
+        float maxDist = _halfHeight + _skinWidth;
         if (_verticalVelocity < 0.0f)
         {
+            // Double negative to add the absolute value of the y-velocity to the max dist.
             maxDist -= _verticalVelocity;
         }
         
@@ -92,7 +93,14 @@ public class Pawn : MonoBehaviour
         {
             _isGrounded = true;
             _verticalVelocity = 0.0f;
-            velocityChange.y = _skinWidth + _halfHeight - hit.distance;
+            float snapToGround = _halfHeight - hit.distance;
+            
+            if (snapToGround <= _skinWidth)
+            {
+                snapToGround = 0.0f;
+            }
+
+            velocityChange.y = snapToGround;
         }
         else
         {
